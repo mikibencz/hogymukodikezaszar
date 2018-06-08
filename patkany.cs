@@ -5,8 +5,8 @@ using System;
 
 public class patkany : MonoBehaviour {
 
-    int workDayStart = 9;
-    int workDayEnd = 17;
+    int workDayStartHour = 9;
+    int workDayEndHour = 17;
     int availableWorkingMinutesOnCurrentWorkingDay = 0;
 
     DateTime TaskAssigner(DateTime DateTaskReceived, int HoursRequiredForTask)
@@ -23,26 +23,26 @@ public class patkany : MonoBehaviour {
                 {
                     case DayOfWeek.Saturday:
                         sortingDate = sortingDate.AddDays(2);
-                        sortingDate = new DateTime(sortingDate.Year, sortingDate.Month, sortingDate.Day, workDayStart, 0, 0);
+                        sortingDate = new DateTime(sortingDate.Year, sortingDate.Month, sortingDate.Day, workDayStartHour, 0, 0);
                         break;
                     case DayOfWeek.Sunday:
                         sortingDate = sortingDate.AddDays(1);
-                        sortingDate = new DateTime(sortingDate.Year, sortingDate.Month, sortingDate.Day, workDayStart, 0, 0);
+                        sortingDate = new DateTime(sortingDate.Year, sortingDate.Month, sortingDate.Day, workDayStartHour, 0, 0);
                         break;
                 }
             }
 
             else
             {
-                if (sortingDate.Hour < workDayStart)
+                if (sortingDate.Hour < workDayStartHour)
                 {
-                    sortingDate = new DateTime(sortingDate.Year, sortingDate.Month, sortingDate.Day, workDayStart, 0, 0);
+                    sortingDate = new DateTime(sortingDate.Year, sortingDate.Month, sortingDate.Day, workDayStartHour, 0, 0);
                 }
 
 
-                if (sortingDate.Hour >= workDayStart && sortingDate.Hour < workDayEnd)
+                if (sortingDate.Hour >= workDayStartHour && sortingDate.Hour < workDayEndHour)
                 {
-                    availableWorkingMinutesOnCurrentWorkingDay = ((workDayEnd - sortingDate.Hour) * 60);
+                    availableWorkingMinutesOnCurrentWorkingDay = ((workDayEndHour - sortingDate.Hour) * 60);
                     if (sortingDate.Minute > 0) { availableWorkingMinutesOnCurrentWorkingDay = availableWorkingMinutesOnCurrentWorkingDay - sortingDate.Minute; }
 
                     if (availableWorkingMinutesOnCurrentWorkingDay - minutesRequiredToFinishTask >= 0)
@@ -55,14 +55,14 @@ public class patkany : MonoBehaviour {
                     {
                         minutesRequiredToFinishTask = minutesRequiredToFinishTask - availableWorkingMinutesOnCurrentWorkingDay;
                         sortingDate = sortingDate.AddDays(1);
-                        sortingDate = new DateTime(sortingDate.Year, sortingDate.Month, sortingDate.Day, workDayStart, 0, 0);
+                        sortingDate = new DateTime(sortingDate.Year, sortingDate.Month, sortingDate.Day, workDayStartHour, 0, 0);
                     }
                 }
 
 
-                else if (sortingDate.Hour > workDayEnd)
+                else if (sortingDate.Hour > workDayEndHour)
                 {
-                    sortingDate = new DateTime(sortingDate.Year, sortingDate.Month, sortingDate.Day + 1, workDayStart, 0, 0);
+                    sortingDate = new DateTime(sortingDate.Year, sortingDate.Month, sortingDate.Day + 1, workDayStartHour, 0, 0);
                 }
             }
         }
