@@ -17,59 +17,100 @@ public class patkany : MonoBehaviour {
         while (0 < minutesRequiredToFinishTask)
         {
 
-            if (sortingDate.DayOfWeek == DayOfWeek.Saturday || sortingDate.DayOfWeek == DayOfWeek.Sunday)
+            if (IsWorkdDay(sortingDate) == false)
             {
-                switch (sortingDate.DayOfWeek)
+                sortingDate = sortingDate.AddDays(1);
+                sortingDate = new DateTime(sortingDate.Year, sortingDate.Month, sortingDate.Day, workDayStartHour, 0, 0);
+            }
+
+            if ( IsWorkdDay(sortingDate) == true)
+            {
+                switch (WhatTimeOfWorkingHours(sortingDate))
                 {
-                    case DayOfWeek.Saturday:
-                        sortingDate = sortingDate.AddDays(2);
+                    case "beforeWorkingHours":
                         sortingDate = new DateTime(sortingDate.Year, sortingDate.Month, sortingDate.Day, workDayStartHour, 0, 0);
                         break;
-                    case DayOfWeek.Sunday:
-                        sortingDate = sortingDate.AddDays(1);
-                        sortingDate = new DateTime(sortingDate.Year, sortingDate.Month, sortingDate.Day, workDayStartHour, 0, 0);
+
+                    case "duringWorkingHours":
+                        availableWorkingMinutesOnCurrentWorkingDay = ((workDayEndHour - sortingDate.Hour) * 60) + (60 - sortingDate.Minute) % 60;
+
+                        if (TaskCanBeFinishedToday(availableWorkingMinutesOnCurrentWorkingDay, minutesRequiredToFinishTask) == true)
+                        {
+                            sortingDate = new DateTime(sortingDate.Year, sortingDate.Month, sortingDate.Day, (sortingDate.Hour + minutesRequiredToFinishTask / 60), (sortingDate.Minute + minutesRequiredToFinishTask % 60), 0);
+                            minutesRequiredToFinishTask = 0;
+                        }
+                        else if (TaskCanBeFinishedToday(availableWorkingMinutesOnCurrentWorkingDay, minutesRequiredToFinishTask) == false)
+                        {
+                            minutesRequiredToFinishTask = minutesRequiredToFinishTask - availableWorkingMinutesOnCurrentWorkingDay;
+                            sortingDate = sortingDate.AddDays(1);
+                            sortingDate = new DateTime(sortingDate.Year, sortingDate.Month, sortingDate.Day, workDayStartHour, 0, 0);
+                        }
+                        break;
+
+                    case "afterWorkingHours":
+                        sortingDate = new DateTime(sortingDate.Year, sortingDate.Month, sortingDate.Day + 1, workDayStartHour, 0, 0);
                         break;
                 }
             }
 
-            else
-            {
-                if (sortingDate.Hour < workDayStartHour)
-                {
-                    sortingDate = new DateTime(sortingDate.Year, sortingDate.Month, sortingDate.Day, workDayStartHour, 0, 0);
-                }
+        }
+        return sortingDate;
+    }
 
+    bool IsWorkdDay (DateTime dateToCheck)
+    {
+        bool isWorkDay = true;
+        if (dateToCheck.DayOfWeek == DayOfWeek.Saturday || dateToCheck.DayOfWeek == DayOfWeek.Sunday)
+        {
+            isWorkDay = false;
+            return isWorkDay;
+        }
+        else
+        {
+            isWorkDay = true;
+            return isWorkDay;
+        }
+    }
 
-                if (sortingDate.Hour >= workDayStartHour && sortingDate.Hour < workDayEndHour)
-                {
-                    availableWorkingMinutesOnCurrentWorkingDay = ((workDayEndHour - sortingDate.Hour) * 60);
-                    if (sortingDate.Minute > 0) { availableWorkingMinutesOnCurrentWorkingDay = availableWorkingMinutesOnCurrentWorkingDay - sortingDate.Minute; }
+    string WhatTimeOfWorkingHours (DateTime dateToCheck)
+    {
+        string period = null;
 
-                    if (availableWorkingMinutesOnCurrentWorkingDay - minutesRequiredToFinishTask >= 0)
-                    {
-                        sortingDate = new DateTime(sortingDate.Year, sortingDate.Month, sortingDate.Day, (sortingDate.Hour + minutesRequiredToFinishTask / 60), (sortingDate.Minute + minutesRequiredToFinishTask % 60), 0);
-                        minutesRequiredToFinishTask = 0;
-                    }
-
-                    else if (availableWorkingMinutesOnCurrentWorkingDay - minutesRequiredToFinishTask < 0)
-                    {
-                        minutesRequiredToFinishTask = minutesRequiredToFinishTask - availableWorkingMinutesOnCurrentWorkingDay;
-                        sortingDate = sortingDate.AddDays(1);
-                        sortingDate = new DateTime(sortingDate.Year, sortingDate.Month, sortingDate.Day, workDayStartHour, 0, 0);
-                    }
-                }
-
-
-                else if (sortingDate.Hour > workDayEndHour)
-                {
-                    sortingDate = new DateTime(sortingDate.Year, sortingDate.Month, sortingDate.Day + 1, workDayStartHour, 0, 0);
-                }
-            }
+        if (dateToCheck.Hour < workDayStartHour)
+        {
+            period = "beforeWorkingHours";
         }
 
-        return sortingDate;
+        if (dateToCheck.Hour >= workDayStartHour && dateToCheck.Hour < workDayEndHour)
+        {
+            period = "duringWorkingHours";
+        }
 
+        if (dateToCheck.Hour > workDayEndHour)
+        {
+            period = "afterWorkingHours";
+        }
+
+        return period;
     }
+
+    bool TaskCanBeFinishedToday (int availableMinutes, int requiredMinutes)
+    {
+        bool canBeFinished = false;
+
+        if (availableMinutes - requiredMinutes >= 0)
+        {
+            canBeFinished = true;
+        }
+
+        if (availableMinutes - requiredMinutes < 0)
+        {
+            canBeFinished = false;
+        }
+
+        return canBeFinished;
+    }
+
 
 
 
